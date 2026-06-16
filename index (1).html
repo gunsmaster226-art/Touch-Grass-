@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Touch Grass!</title>
+<style>
+	body {
+		margin: 0;
+		height: 100vh;
+		overflow: hidden;
+		background: white; /* Strictly white fallback background */
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		cursor: default;
+		-webkit-user-select: none;
+		-ms-user-select: none;
+		user-select: none;
+	}
+	
+	#movingImage {
+		position: absolute;
+		width: 150px;
+		height: auto;
+		transition: transform 0.15s ease;
+		z-index: 10; 
+	}
+
+	/* CSS Grid that creates native white squares without using whiteblock.jpg images */
+	.grid-container {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100vw;
+		height: 100vh;
+		display: grid;
+		grid-template-columns: repeat(5, 1fr);
+		grid-template-rows: repeat(5, 1fr);
+		background-color: white; 
+		z-index: 1;
+	}
+
+	.grid-cell {
+		margin: 0;
+		padding: 0;
+		background-color: white; /* Forces the entire square block to be fully white */
+		width: 100%;
+		height: 100%;
+	}
+
+	/* Scoreboard Container - Clean Green on White Card */
+	.overlay-card {
+		position: fixed;
+		top: 15px;
+		left: 15px;
+		width: 220px;
+		background-color: white;
+		border: 3px solid #2e7d32; 
+		border-radius: 4px;
+		padding: 12px;
+		z-index: 20;
+		font-family: 'Courier New', monospace;
+		color: #2e7d32; 
+		box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+	}
+
+	.overlay-title {
+		font-size: 22px;
+		font-weight: bold;
+		text-align: center;
+		border-bottom: 2px solid #2e7d32;
+		padding-bottom: 6px;
+		margin-bottom: 8px;
+	}
+
+	.score-row {
+		display: flex;
+		justify-content: space-between;
+		font-size: 15px;
+		font-weight: bold;
+		margin: 4px 0;
+	}
+
+	.custom-cursor {
+		width: 20px;
+		height: 20px;
+		background-color: green;
+		border-radius: 50%;
+		position: fixed;
+		top: 0;
+		left: 0;
+		pointer-events: none; 
+		transform: translate3d(0, 0, 0) translate(-50%, -50%);
+		will-change: transform;
+		z-index: 100;
+		display: none; 
+	}
+	
+	.cursor-text {
+		font-family: Arial, sans-serif;
+		font-size: 14px;
+		font-weight: bold;
+		color: #2e7d32; 
+		white-space: nowrap;          
+		transform: translateY(-20px);
+	}
+	
+	.nice-try-overlay {
+		position: fixed;
+		top: 40px; 
+		left: 50%;
+		transform: translateX(-50%);
+		font-family: Arial, sans-serif;
+		font-size: 72px; 
+		font-weight: bold;
+		color: #2e7d32; 
+		background: transparent;
+		white-space: nowrap;
+		z-index: 9999; 
+		pointer-events: none;
+	}
+
+	#startupScreen {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background-color: #e3edd5;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		z-index: 10000;
+		font-family: Arial, sans-serif;
+	}
+
+	#startupScreen h1 {
+		font-size: 48px;
+		font-family: Courier New;
+		color: #2e7d32;
+		margin-bottom: 20px;
+	}
+
+	#startButton {
+		padding: 15px 40px;
+		font-size: 24px;
+		font-family: Courier New;
+		font-weight: bold;
+		color: #e3edd5;
+		background-color: #2e7d32;
+		border: none;
+		border-radius: 1px;
+		cursor: pointer;
+		transition: background-color 0.2s, transform 0.1s;
+	}
+
+	#startButton:hover {
+		background-color: #45a049;
+	}
+
+	#startButton:active {
+		transform: scale(0.98);
+	}
+</style>
+</head>
+<body>
+
+<div id="startupScreen">
+	<h1>Click to Start</h1>
+	<button id="startButton">Start</button>
+</div>
+
+<div class="custom-cursor" id="cursor">
+    <div class="cursor-text">GrassToucher2000</div>
+    <div class="cursor-dot"></div>
+</div>
+
+	<img id="movingImage" src="touchablegrass.png" alt="Random Image" draggable="false" style="display: none;">
+	
+	<div class="grid-container">
+		<div class="grid-cell"></div>
+		<div class="grid-cell audio-trigger"></div>
+		<div class="grid-cell"></div>
+		<div class="grid-cell"></div>
+		<div class="grid-cell"></div>
+		
+		<div class="grid-cell"></div>
+		<div class="grid-cell"></div>
+		<div class="grid-cell"></div>
+		<div class="grid-cell audio-trigger"></div>
+		<div class="grid-cell"></div>
+		
+		<div class="grid-cell"></div>
+		<div class="grid-cell"></div>
+		<div class="grid-cell"></div>
+		<div class="grid-cell audio-trigger"></div>
+		<div class="grid-cell"></div>
+		
+		<div class="grid-cell audio-trigger"></div>
+		<div class="grid-cell"></div>
+		<div class="grid-cell"></div>
+		<div class="grid-cell"></div>
+		<div class="grid-cell"></div>
+		
+		<div class="grid-cell"></div>
+		<div class="grid-cell"></div>
+		<div class="grid-cell"></div>
+		<div class="grid-cell"></div>
+		<div class="grid-cell audio-trigger"></div>
+	</div>
+	
+	<div class="overlay-card">
+		<div class="overlay-title">Highscore</div>
+		<div class="score-row">
+			<span>Your Score:</span>
+			<span id="yourScore">0</span>
+		</div>
+		<div class="score-row" style="font-size: 13px;">
+			<span>Worldwide:</span>
+			<span>1034832</span>
+		</div>
+	</div>
+
+<script>
+	(function() {
+		const cursor = document.getElementById('cursor');
+		const img = document.getElementById("movingImage");
+		const sound = document.getElementById("moveSound");
+		const startupScreen = document.getElementById('startupScreen');
+		const startButton = document.getElementById('startButton');
+		const yourScoreEl = document.getElementById('yourScore');
+		const pathHistory = [];
+		
+		let gameStarted = false;
+		let playerScore = 0;
+		let cursorX = window.innerWidth / 2;
+		let cursorY = window.innerHeight / 2;
+		const maxSpeed = 10; 
+
+		startButton.addEventListener('click', () => {
+			startupScreen.style.display = 'none';
+			img.style.display = 'block';
+			cursor.style.display = 'block';
+			gameStarted = true;
+			moveImageRandomly();
+		});
+
+		window.addEventListener('mousemove', (e) => {
+			if (!gameStarted) return;
+			pathHistory.push({ x: e.clientX, y: e.clientY });
+		});
+
+		function moveImageRandomly() {
+			try {
+				var maxX = window.innerWidth - img.offsetWidth;
+				var maxY = window.innerHeight - img.offsetHeight;
+				
+				if (maxX < 0 || maxY < 0) { return; }
+				
+				var randomX = Math.floor(Math.random() * maxX);
+				var randomY = Math.floor(Math.random() * maxY);
+				
+				img.style.left = randomX + "px";
+				img.style.top = randomY + "px";
+				
+				if (sound) {
+					sound.currentTime = 0;
+					sound.play().catch(function(err) {
+						console.warn("Sound blocked by browser until user interacts:", err);
+					});
+				}
+			} catch (err) {
+				console.error("Error moving image:", err);
+			}
+		}
+
+		function animate() {
+			if (gameStarted && pathHistory.length > 0) {
+				const target = pathHistory[0];
+				
+				const dx = target.x - cursorX;
+				const dy = target.y - cursorY;
+				const distance = Math.hypot(dx, dy);
+
+				if (distance > maxSpeed) {
+					cursorX += (dx / distance) * maxSpeed;
+					cursorY += (dy / distance) * maxSpeed;
+				} else {
+					cursorX = target.x;
+					cursorY = target.y;
+					pathHistory.shift(); 
+				}
+
+				cursor.style.transform = `translate3d(${cursorX}px, ${cursorY}px, 0) translate(-50%, -50%)`;
+			}
+
+			if (gameStarted) {
+				const imgRect = img.getBoundingClientRect();
+
+				if (
+					cursorX >= imgRect.left &&
+					cursorX <= imgRect.right &&
+					cursorY >= imgRect.top &&
+					cursorY <= imgRect.bottom
+				) {
+					playerScore--;
+					
+					yourScoreEl.textContent = playerScore;
+					
+					moveImageRandomly();
+				}
+
+			}
+
+			requestAnimationFrame(animate);
+		}
+
+		animate();
+	})();
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const cartoonAudio = new Audio('cartoon1.WAV');
+    const audioCells = document.querySelectorAll('.audio-trigger');
+
+    audioCells.forEach(cell => {
+        cell.addEventListener('mouseenter', () => {
+            cartoonAudio.currentTime = 0; 
+            cartoonAudio.play().catch(error => {
+                console.log("Audio waiting for initial user interaction:", error);
+            });
+        });
+    });
+});
+</script>
+<script>
+    document.addEventListener('contextmenu', (event) => {
+        event.preventDefault();
+    });
+</script>
+<script>
+    window.addEventListener('keydown', (event) => {
+        const isF12 = (event.key === 'F12' || event.keyCode === 123);
+        const isCtrlShiftI = (event.ctrlKey && event.shiftKey && (event.key === 'I' || event.key === 'i'));
+        const isCtrlU = (event.ctrlKey && (event.key === 'u' || event.key === 'U'));
+        const isCtrlS = (event.ctrlKey && (event.key === 's' || event.key === 'S'));
+
+        if (isF12 || isCtrlShiftI || isCtrlU || isCtrlS) {
+            event.preventDefault();
+
+            if (document.querySelector('.nice-try-overlay')) return;
+
+            const msg = document.createElement('div');
+            msg.className = 'nice-try-overlay';
+            msg.textContent = 'Nice try!';
+
+            document.body.appendChild(msg);
+
+            setTimeout(() => {
+                msg.remove();
+            }, 3000);
+        }
+    });
+</script>
+</body>
+</html>
