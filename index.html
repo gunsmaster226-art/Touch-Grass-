@@ -8,7 +8,7 @@
 		margin: 0;
 		height: 100vh;
 		overflow: hidden;
-		background: white; /* Strictly white fallback background */
+		background: white;
 		display: flex;
 		justify-content: center;
 		align-items: center;
@@ -26,7 +26,6 @@
 		z-index: 10; 
 	}
 
-	/* CSS Grid that creates native white squares without using whiteblock.jpg images */
 	.grid-container {
 		position: absolute;
 		top: 0;
@@ -43,12 +42,11 @@
 	.grid-cell {
 		margin: 0;
 		padding: 0;
-		background-color: white; /* Forces the entire square block to be fully white */
+		background-color: white;
 		width: 100%;
 		height: 100%;
 	}
 
-	/* Scoreboard Container - Clean Green on White Card */
 	.overlay-card {
 		position: fixed;
 		top: 15px;
@@ -102,6 +100,7 @@
 		font-weight: bold;
 		color: #2e7d32; 
 		white-space: nowrap;          
+		text-shadow: 1px 1px 0px white, -1px -1px 0px white; 
 		transform: translateY(-20px);
 	}
 	
@@ -166,6 +165,8 @@
 </head>
 <body>
 
+<audio id="moveSound" src="cartoon1.wav" preload="auto"></audio>
+
 <div id="startupScreen">
 	<h1>Click to Start</h1>
 	<button id="startButton">Start</button>
@@ -226,7 +227,7 @@
 	(function() {
 		const cursor = document.getElementById('cursor');
 		const img = document.getElementById("movingImage");
-		const sound = document.getElementById("moveSound");
+		const sound = document.getElementById("moveSound"); // Fixed: Now correctly references the audio element above
 		const startupScreen = document.getElementById('startupScreen');
 		const startButton = document.getElementById('startButton');
 		const yourScoreEl = document.getElementById('yourScore');
@@ -243,7 +244,16 @@
 			img.style.display = 'block';
 			cursor.style.display = 'block';
 			gameStarted = true;
-			moveImageRandomly();
+			
+			if (sound) {
+				sound.play().then(() => {
+					sound.pause();
+					sound.currentTime = 0;
+					moveImageRandomly();
+				}).catch(err => console.log("Audio unlock failed:", err));
+			} else {
+				moveImageRandomly();
+			}
 		});
 
 		window.addEventListener('mousemove', (e) => {
@@ -264,10 +274,10 @@
 				img.style.left = randomX + "px";
 				img.style.top = randomY + "px";
 				
-				if (sound) {
+				if (sound && gameStarted) {
 					sound.currentTime = 0;
 					sound.play().catch(function(err) {
-						console.warn("Sound blocked by browser until user interacts:", err);
+						console.warn("Sound blocked:", err);
 					});
 				}
 			} catch (err) {
@@ -305,12 +315,9 @@
 					cursorY <= imgRect.bottom
 				) {
 					playerScore--;
-					
 					yourScoreEl.textContent = playerScore;
-					
 					moveImageRandomly();
 				}
-
 			}
 
 			requestAnimationFrame(animate);
@@ -321,14 +328,14 @@
 </script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    const cartoonAudio = new Audio('cartoon1.WAV');
+    const cartoonAudio = new Audio('cartoon1.wav');
     const audioCells = document.querySelectorAll('.audio-trigger');
 
     audioCells.forEach(cell => {
         cell.addEventListener('mouseenter', () => {
             cartoonAudio.currentTime = 0; 
             cartoonAudio.play().catch(error => {
-                console.log("Audio waiting for initial user interaction:", error);
+                console.log("Audio waiting for user gesture context:", error);
             });
         });
     });
